@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Check, Wallet, Coins, Users, ListChecks, ExternalLink, Send, Twitter } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
+import { useSettings } from "@/hooks/use-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { shortAddr } from "@/lib/wallet";
 
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { address, participant, connect, loading, refresh, hydrated } = useWallet();
+  const { settings } = useSettings();
   const [copied, setCopied] = useState(false);
   const [tg, setTg] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -51,20 +53,17 @@ function Dashboard() {
   };
 
   const completeTask = async (
+    task: "telegram_joined" | "twitter_followed",
     field: "task_telegram_joined" | "task_twitter_followed",
     label: string
   ) => {
     if (participant[field]) return;
     setBusy(field);
     try {
-      const update =
-        field === "task_telegram_joined"
-          ? { task_telegram_joined: true, points: participant.points + 10 }
-          : { task_twitter_followed: true, points: participant.points + 10 };
-      const { error } = await supabase
-        .from("participants")
-        .update(update)
-        .eq("id", participant.id);
+      const { error } = await supabase.rpc("award_task", {
+        _wallet: participant.wallet_address,
+        _task: task,
+      });
       if (error) throw error;
       toast.success(`${label} — +10 points!`);
       await refresh();
@@ -77,19 +76,21 @@ function Dashboard() {
 
   const submitTelegram = async () => {
     const v = tg.trim().replace(/^@/, "");
-    if (!v) return toast.error("Enter your Telegram username");
+    if (!/^[a-zA-Z0-9_]{3,32}$/.test(v)) {
+      return toast.error("Username must be 3-32 chars (letters, digits, underscore)");
+    }
     setBusy("tg");
     try {
-      const { error } = await supabase
-        .from("participants")
-        .update({
-          telegram_username: v,
-          task_telegram_submitted: true,
-          points: participant.points + (participant.task_telegram_submitted ? 0 : 10),
-        })
-        .eq("id", participant.id);
+      const { error } = await supabase.rpc("submit_telegram_username", {
+        _wallet: participant.wallet_address,
+        _username: v,
+      });
       if (error) throw error;
-      toast.success("Telegram submitted — +10 points!");
+      toast.success(
+        participant.task_telegram_submitted
+          ? "Telegram username updated"
+          : "Telegram submitted — +10 points!"
+      );
       setTg("");
       await refresh();
     } catch (e: any) {
@@ -155,11 +156,11 @@ function Dashboard() {
               busy={busy === "task_telegram_joined"}
               action={
                 <>
-                  <a href="https://t.me/wavedrop" target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
+                  <a href={settings.telegram_url} target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
                     Open <ExternalLink className="w-3 h-3" />
                   </a>
                   <button
-                    onClick={() => completeTask("task_telegram_joined", "Joined Telegram")}
+                    onClick={() => completeTask("telegram_joined", "task_telegram_joined", "Joined Telegram")}
                     disabled={participant.task_telegram_joined || busy !== null}
                     className="btn-neon text-xs"
                   >
@@ -176,11 +177,11 @@ function Dashboard() {
               busy={busy === "task_twitter_followed"}
               action={
                 <>
-                  <a href="https://x.com/wavedrop" target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
+                  <a href={settings.twitter_url} target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
                     Open <ExternalLink className="w-3 h-3" />
                   </a>
                   <button
-                    onClick={() => completeTask("task_twitter_followed", "Followed on X")}
+                    onClick={() => completeTask("twitter_followed", "task_twitter_followed", "Followed on X")}
                     disabled={participant.task_twitter_followed || busy !== null}
                     className="btn-neon text-xs"
                   >
