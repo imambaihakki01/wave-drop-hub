@@ -51,20 +51,17 @@ function Dashboard() {
   };
 
   const completeTask = async (
+    task: "telegram_joined" | "twitter_followed",
     field: "task_telegram_joined" | "task_twitter_followed",
     label: string
   ) => {
     if (participant[field]) return;
     setBusy(field);
     try {
-      const update =
-        field === "task_telegram_joined"
-          ? { task_telegram_joined: true, points: participant.points + 10 }
-          : { task_twitter_followed: true, points: participant.points + 10 };
-      const { error } = await supabase
-        .from("participants")
-        .update(update)
-        .eq("id", participant.id);
+      const { error } = await supabase.rpc("award_task", {
+        _wallet: participant.wallet_address,
+        _task: task,
+      });
       if (error) throw error;
       toast.success(`${label} — +10 points!`);
       await refresh();
@@ -77,19 +74,21 @@ function Dashboard() {
 
   const submitTelegram = async () => {
     const v = tg.trim().replace(/^@/, "");
-    if (!v) return toast.error("Enter your Telegram username");
+    if (!/^[a-zA-Z0-9_]{3,32}$/.test(v)) {
+      return toast.error("Username must be 3-32 chars (letters, digits, underscore)");
+    }
     setBusy("tg");
     try {
-      const { error } = await supabase
-        .from("participants")
-        .update({
-          telegram_username: v,
-          task_telegram_submitted: true,
-          points: participant.points + (participant.task_telegram_submitted ? 0 : 10),
-        })
-        .eq("id", participant.id);
+      const { error } = await supabase.rpc("submit_telegram_username", {
+        _wallet: participant.wallet_address,
+        _username: v,
+      });
       if (error) throw error;
-      toast.success("Telegram submitted — +10 points!");
+      toast.success(
+        participant.task_telegram_submitted
+          ? "Telegram username updated"
+          : "Telegram submitted — +10 points!"
+      );
       setTg("");
       await refresh();
     } catch (e: any) {
