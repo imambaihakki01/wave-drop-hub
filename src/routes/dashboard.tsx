@@ -156,11 +156,11 @@ function Dashboard() {
               busy={busy === "task_telegram_joined"}
               action={
                 <>
-                  <a href="https://t.me/wavedrop" target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
+                  <a href={settings.telegram_url} target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
                     Open <ExternalLink className="w-3 h-3" />
                   </a>
                   <button
-                    onClick={() => completeTask("task_telegram_joined", "Joined Telegram")}
+                    onClick={() => completeTask("telegram_joined", "task_telegram_joined", "Joined Telegram")}
                     disabled={participant.task_telegram_joined || busy !== null}
                     className="btn-neon text-xs"
                   >
@@ -177,11 +177,11 @@ function Dashboard() {
               busy={busy === "task_twitter_followed"}
               action={
                 <>
-                  <a href="https://x.com/wavedrop" target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
+                  <a href={settings.twitter_url} target="_blank" rel="noreferrer" className="btn-outline-neon text-xs inline-flex items-center gap-1">
                     Open <ExternalLink className="w-3 h-3" />
                   </a>
                   <button
-                    onClick={() => completeTask("task_twitter_followed", "Followed on X")}
+                    onClick={() => completeTask("twitter_followed", "task_twitter_followed", "Followed on X")}
                     disabled={participant.task_twitter_followed || busy !== null}
                     className="btn-neon text-xs"
                   >
