@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { Header } from "@/components/Header";
+import { WaveBackground } from "@/components/WaveBackground";
 import { captureReferral } from "@/hooks/use-wallet";
 
 import appCss from "../styles.css?url";
@@ -93,6 +94,7 @@ function RootComponent() {
   useEffect(() => { captureReferral(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
+      <WaveBackground />
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">

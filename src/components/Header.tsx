@@ -1,42 +1,47 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Wallet, LogOut, Waves } from "lucide-react";
+import { useState } from "react";
+import { Wallet, LogOut, Waves, Menu, X } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { shortAddr } from "@/lib/wallet";
 
 const nav = [
   { to: "/", label: "Home" },
+  { to: "/how-it-works", label: "How it Works" },
+  { to: "/tokenomics", label: "Tokenomics" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/admin", label: "Admin" },
+  { to: "/faq", label: "FAQ" },
 ] as const;
 
 export function Header() {
   const { address, connect, disconnect, loading } = useWallet();
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-3">
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
           <div className="relative w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-neon-purple group-hover:scale-110 transition-transform">
             <Waves className="w-5 h-5 text-primary-foreground" />
+            <span className="absolute inset-0 rounded-xl border border-primary/40 animate-pulse-glow" />
           </div>
           <div className="leading-tight">
             <div className="font-bold text-lg text-gradient">WaveDrop</div>
             <div className="text-[10px] text-muted-foreground hidden sm:block">
-              Future of Community Airdrop
+              The Future of Community Airdrop
             </div>
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1">
           {nav.map((n) => {
             const active = location.pathname === n.to;
             return (
               <Link
                 key={n.to}
                 to={n.to}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   active
                     ? "text-foreground bg-accent shadow-glow-soft"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -48,45 +53,67 @@ export function Header() {
           })}
         </nav>
 
-        {address ? (
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg glass-card font-mono text-xs">
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              {shortAddr(address)}
-            </div>
-            <button
-              onClick={disconnect}
-              className="p-2 rounded-lg btn-outline-neon"
-              aria-label="Disconnect"
-            >
-              <LogOut className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {address ? (
+            <>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg glass-card font-mono text-xs">
+                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                {shortAddr(address)}
+              </div>
+              <button
+                onClick={disconnect}
+                className="p-2 rounded-lg btn-outline-neon"
+                aria-label="Disconnect"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <button onClick={connect} disabled={loading} className="btn-neon flex items-center gap-2 text-sm">
+              <Wallet className="w-4 h-4" />
+              <span className="hidden sm:inline">{loading ? "Connecting…" : "Connect Wallet"}</span>
             </button>
-          </div>
-        ) : (
-          <button onClick={connect} disabled={loading} className="btn-neon flex items-center gap-2 text-sm">
-            <Wallet className="w-4 h-4" />
-            {loading ? "Connecting…" : "Connect Wallet"}
+          )}
+
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="lg:hidden p-2 rounded-lg btn-outline-neon"
+            aria-label="Menu"
+          >
+            {open ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
-        )}
+        </div>
       </div>
 
-      {/* Mobile nav */}
-      <nav className="md:hidden flex items-center justify-center gap-1 px-4 pb-3 overflow-x-auto">
-        {nav.map((n) => {
-          const active = location.pathname === n.to;
-          return (
+      {/* Mobile drawer */}
+      {open && (
+        <nav className="lg:hidden border-t border-border bg-background/95 backdrop-blur-xl animate-fade-in">
+          <div className="px-4 py-3 flex flex-col gap-1">
+            {nav.map((n) => {
+              const active = location.pathname === n.to;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  onClick={() => setOpen(false)}
+                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                    active ? "bg-gradient-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent/50"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
             <Link
-              key={n.to}
-              to={n.to}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
-                active ? "bg-gradient-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
+              to="/admin"
+              onClick={() => setOpen(false)}
+              className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground/60 hover:text-foreground"
             >
-              {n.label}
+              Admin
             </Link>
-          );
-        })}
-      </nav>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }
