@@ -57,8 +57,10 @@ function Dashboard() {
     if (participant[field]) return;
     setBusy(field);
     try {
-      const update: Record<string, unknown> = { points: participant.points + 10 };
-      update[field] = true;
+      const update =
+        field === "task_telegram_joined"
+          ? { task_telegram_joined: true, points: participant.points + 10 }
+          : { task_twitter_followed: true, points: participant.points + 10 };
       const { error } = await supabase
         .from("participants")
         .update(update)
