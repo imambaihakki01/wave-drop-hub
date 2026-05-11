@@ -57,9 +57,11 @@ function Dashboard() {
     if (participant[field]) return;
     setBusy(field);
     try {
+      const update: Record<string, unknown> = { points: participant.points + 10 };
+      update[field] = true;
       const { error } = await supabase
         .from("participants")
-        .update({ [field]: true, points: participant.points + 10 })
+        .update(update)
         .eq("id", participant.id);
       if (error) throw error;
       toast.success(`${label} — +10 points!`);
