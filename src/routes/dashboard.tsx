@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Check, Wallet, Coins, Users, ListChecks, ExternalLink, Send, Twitter } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
+import { useSettings } from "@/hooks/use-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { shortAddr } from "@/lib/wallet";
 
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { address, participant, connect, loading, refresh, hydrated } = useWallet();
+  const { settings } = useSettings();
   const [copied, setCopied] = useState(false);
   const [tg, setTg] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
