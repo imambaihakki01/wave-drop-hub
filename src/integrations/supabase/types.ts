@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      participants: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+          task_telegram_joined: boolean
+          task_telegram_submitted: boolean
+          task_twitter_followed: boolean
+          telegram_username: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points?: number
+          referral_code: string
+          referral_count?: number
+          referred_by?: string | null
+          task_telegram_joined?: boolean
+          task_telegram_submitted?: boolean
+          task_twitter_followed?: boolean
+          telegram_username?: string | null
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          referral_code?: string
+          referral_count?: number
+          referred_by?: string | null
+          task_telegram_joined?: boolean
+          task_telegram_submitted?: boolean
+          task_twitter_followed?: boolean
+          telegram_username?: string | null
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
