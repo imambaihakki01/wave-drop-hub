@@ -1,6 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Download, Lock, Users, Coins, Award, LogOut, Trash2, Save, Calendar, Crown } from "lucide-react";
+import {
+  Download, Lock, Users, Coins, Award, LogOut, Trash2, Save, Calendar,
+  Crown, Ban, ShieldCheck, Plus, Minus,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { shortAddr } from "@/lib/wallet";
@@ -23,6 +26,7 @@ type P = {
   task_telegram_joined: boolean;
   task_twitter_followed: boolean;
   task_telegram_submitted: boolean;
+  is_banned: boolean;
   created_at: string;
 };
 
@@ -33,6 +37,7 @@ function Admin() {
 
   const [rows, setRows] = useState<P[]>([]);
   const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"all" | "banned" | "active" | "complete">("all");
   const [loadingRows, setLoadingRows] = useState(false);
   const [eventDate, setEventDate] = useState("");
   const [tgUrl, setTgUrl] = useState("");
@@ -40,12 +45,10 @@ function Admin() {
   const [saving, setSaving] = useState(false);
   const [hasAdmins, setHasAdmins] = useState<boolean | null>(null);
 
-  // Redirect to /auth if not signed in
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [authLoading, user, navigate]);
 
-  // Check if any admin exists (for bootstrap)
   useEffect(() => {
     if (!user || isAdmin) return;
     supabase
@@ -55,19 +58,17 @@ function Admin() {
       .then(({ count }) => setHasAdmins((count ?? 0) > 0));
   }, [user, isAdmin]);
 
-  // Load data when admin
-  useEffect(() => {
-    if (!isAdmin) return;
+  const loadRows = async () => {
     setLoadingRows(true);
-    supabase
+    const { data } = await supabase
       .from("participants")
       .select("*")
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setRows((data as P[]) ?? []);
-        setLoadingRows(false);
-      });
-  }, [isAdmin]);
+      .order("created_at", { ascending: false });
+    setRows((data as P[]) ?? []);
+    setLoadingRows(false);
+  };
+
+  useEffect(() => { if (isAdmin) loadRows(); }, [isAdmin]);
 
   useEffect(() => {
     setEventDate(toDateInput(settings.event_end_at));
@@ -76,28 +77,52 @@ function Admin() {
   }, [settings]);
 
   const filtered = useMemo(() => {
-    if (!q) return rows;
-    const s = q.toLowerCase();
-    return rows.filter(
-      (r) =>
-        r.wallet_address.toLowerCase().includes(s) ||
-        r.referral_code.toLowerCase().includes(s) ||
-        (r.telegram_username ?? "").toLowerCase().includes(s)
+    let r = rows;
+    if (filter === "banned") r = r.filter((x) => x.is_banned);
+    if (filter === "active") r = r.filter((x) => !x.is_banned);
+    if (filter === "complete") r = r.filter((x) =>
+      x.task_telegram_joined && x.task_twitter_followed && x.task_telegram_submitted
     );
-  }, [rows, q]);
+    if (!q) return r;
+    const s = q.toLowerCase();
+    return r.filter(
+      (x) =>
+        x.wallet_address.toLowerCase().includes(s) ||
+        x.referral_code.toLowerCase().includes(s) ||
+        (x.telegram_username ?? "").toLowerCase().includes(s)
+    );
+  }, [rows, q, filter]);
 
   const totalPoints = rows.reduce((a, r) => a + r.points, 0);
   const totalRefs = rows.reduce((a, r) => a + r.referral_count, 0);
+  const banned = rows.filter((r) => r.is_banned).length;
+
+  // Daily growth for chart (last 14 days)
+  const chart = useMemo(() => {
+    const days = 14;
+    const buckets: { day: string; count: number }[] = [];
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      buckets.push({ day: `${d.getMonth() + 1}/${d.getDate()}`, count: 0 });
+    }
+    rows.forEach((r) => {
+      const created = new Date(r.created_at);
+      const idx = days - 1 - Math.floor((Date.now() - created.getTime()) / 86400000);
+      if (idx >= 0 && idx < days) buckets[idx].count++;
+    });
+    return buckets;
+  }, [rows]);
+
+  const maxBar = Math.max(1, ...chart.map((b) => b.count));
 
   const claimAdmin = async () => {
     const { data, error } = await supabase.rpc("claim_first_admin");
     if (error) return toast.error(error.message);
-    if (data) {
-      toast.success("You are now the WaveDrop admin");
-      window.location.reload();
-    } else {
-      toast.error("An admin already exists. Contact them for access.");
-    }
+    if (data) { toast.success("You are now the WaveDrop admin"); window.location.reload(); }
+    else toast.error("An admin already exists. Contact them for access.");
   };
 
   const saveSettings = async (e: React.FormEvent) => {
@@ -127,10 +152,25 @@ function Admin() {
     toast.success("Participant removed");
   };
 
+  const toggleBan = async (p: P) => {
+    const { data, error } = await supabase.rpc("admin_toggle_ban", { _participant_id: p.id });
+    if (error) return toast.error(error.message);
+    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
+    toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
+  };
+
+  const adjustPoints = async (p: P, delta: number) => {
+    const { data, error } = await supabase.rpc("admin_adjust_points", { _participant_id: p.id, _delta: delta });
+    if (error) return toast.error(error.message);
+    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
+    toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
+  };
+
   const exportCSV = () => {
     const headers = [
       "wallet_address", "telegram_username", "referral_code", "referred_by",
-      "points", "referral_count", "telegram_joined", "twitter_followed", "telegram_submitted", "created_at",
+      "points", "referral_count", "telegram_joined", "twitter_followed", "telegram_submitted",
+      "is_banned", "created_at",
     ];
     const csv = [
       headers.join(","),
@@ -138,26 +178,21 @@ function Admin() {
         [
           r.wallet_address, r.telegram_username ?? "", r.referral_code, r.referred_by ?? "",
           r.points, r.referral_count, r.task_telegram_joined, r.task_twitter_followed,
-          r.task_telegram_submitted, r.created_at,
+          r.task_telegram_submitted, r.is_banned, r.created_at,
         ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
       ),
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `wavedrop-participants-${Date.now()}.csv`;
-    a.click();
+    a.href = url; a.download = `wavedrop-participants-${Date.now()}.csv`; a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} wallets`);
   };
 
-  // ---- Render states ----
-
   if (authLoading) {
     return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">Checking access…</div>;
   }
-
   if (!user) return null;
 
   if (!isAdmin) {
@@ -166,22 +201,14 @@ function Admin() {
         <div className="glass-card rounded-2xl p-8 text-center">
           <Lock className="w-10 h-10 mx-auto text-primary mb-3" />
           <h1 className="text-2xl font-bold text-gradient">Not authorized</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Your account ({user.email}) doesn't have admin role.
-          </p>
-
+          <p className="text-sm text-muted-foreground mt-2">Your account ({user.email}) doesn't have admin role.</p>
           {hasAdmins === false && (
             <div className="mt-5 p-4 rounded-xl border border-secondary/40 bg-secondary/5">
               <Crown className="w-6 h-6 mx-auto text-secondary mb-2" />
-              <p className="text-sm">
-                No admin exists yet. Claim it to become the first WaveDrop administrator.
-              </p>
-              <button onClick={claimAdmin} className="btn-neon mt-3 w-full">
-                Claim Admin Access
-              </button>
+              <p className="text-sm">No admin exists yet. Claim it to become the first WaveDrop administrator.</p>
+              <button onClick={claimAdmin} className="btn-neon mt-3 w-full">Claim Admin Access</button>
             </div>
           )}
-
           <button onClick={signOut} className="btn-outline-neon mt-4 w-full">
             <LogOut className="w-4 h-4 inline mr-2" /> Sign out
           </button>
@@ -211,11 +238,12 @@ function Admin() {
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { i: Users, l: "Participants", v: rows.length },
-          { i: Coins, l: "Total Points", v: totalPoints.toLocaleString() },
-          { i: Award, l: "Total Referrals", v: totalRefs },
+          { i: Users, l: "Participants", v: rows.length, c: "primary" },
+          { i: Coins, l: "Total Points", v: totalPoints.toLocaleString(), c: "secondary" },
+          { i: Award, l: "Total Referrals", v: totalRefs, c: "primary" },
+          { i: Ban, l: "Banned", v: banned, c: "destructive" },
         ].map((s) => (
           <div key={s.l} className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
@@ -226,6 +254,31 @@ function Admin() {
         ))}
       </div>
 
+      {/* Chart: signups last 14 days */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Signups · Last 14 days</h2>
+          <span className="text-xs text-muted-foreground font-mono">
+            Total: {chart.reduce((a, b) => a + b.count, 0)}
+          </span>
+        </div>
+        <div className="flex items-end gap-1.5 h-40">
+          {chart.map((b, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 group">
+              <div
+                className="w-full rounded-t-md bg-gradient-primary shadow-neon-purple transition-all relative hover:opacity-80"
+                style={{ height: `${(b.count / maxBar) * 100}%`, minHeight: b.count > 0 ? 4 : 2 }}
+              >
+                <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-mono opacity-0 group-hover:opacity-100 transition bg-card px-1.5 py-0.5 rounded border border-border">
+                  {b.count}
+                </div>
+              </div>
+              <div className="text-[9px] text-muted-foreground font-mono">{b.day}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Settings */}
       <form onSubmit={saveSettings} className="glass-card rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-2">
@@ -234,13 +287,7 @@ function Admin() {
         </div>
         <div className="grid md:grid-cols-3 gap-4">
           <Field label="Event end date">
-            <input
-              type="datetime-local"
-              required
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="input"
-            />
+            <input type="datetime-local" required value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="input" />
           </Field>
           <Field label="Telegram URL">
             <input value={tgUrl} onChange={(e) => setTgUrl(e.target.value)} className="input" />
@@ -254,13 +301,30 @@ function Admin() {
         </button>
       </form>
 
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search wallet, code, telegram…"
-        className="input w-full"
-      />
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search wallet, code, telegram…"
+          className="input flex-1 min-w-[200px]"
+        />
+        <div className="flex gap-1 rounded-lg p-1 bg-input border border-border">
+          {(["all", "active", "complete", "banned"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium uppercase tracking-wide transition ${
+                filter === k ? "bg-gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      {/* Table */}
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -273,7 +337,7 @@ function Admin() {
                 <th className="px-4 py-3 text-right">Refs</th>
                 <th className="px-4 py-3 text-center">Tasks</th>
                 <th className="px-4 py-3 text-left">Joined</th>
-                <th className="px-4 py-3"></th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -285,24 +349,49 @@ function Admin() {
                 filtered.map((r) => {
                   const tasks = [r.task_telegram_joined, r.task_twitter_followed, r.task_telegram_submitted].filter(Boolean).length;
                   return (
-                    <tr key={r.id} className="border-t border-border/50 hover:bg-accent/30">
-                      <td className="px-4 py-3 font-mono text-xs">{shortAddr(r.wallet_address)}</td>
+                    <tr key={r.id} className={`border-t border-border/50 hover:bg-accent/30 ${r.is_banned ? "opacity-60" : ""}`}>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        <div className="flex items-center gap-2">
+                          {r.is_banned && <Ban className="w-3 h-3 text-destructive shrink-0" />}
+                          {shortAddr(r.wallet_address)}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-xs">{r.telegram_username ? `@${r.telegram_username}` : "—"}</td>
                       <td className="px-4 py-3 font-mono text-xs text-secondary">{r.referral_code}</td>
-                      <td className="px-4 py-3 text-right font-mono">{r.points}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <button onClick={() => adjustPoints(r, -10)} className="p-1 rounded hover:bg-destructive/20 text-destructive" aria-label="-10">
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="font-mono w-12 text-right">{r.points}</span>
+                          <button onClick={() => adjustPoints(r, 10)} className="p-1 rounded hover:bg-secondary/20 text-secondary" aria-label="+10">
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-right font-mono text-secondary">{r.referral_count}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`text-xs font-mono ${tasks === 3 ? "text-secondary" : "text-muted-foreground"}`}>{tasks}/3</span>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => deleteParticipant(r)}
-                          className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            onClick={() => toggleBan(r)}
+                            className={`p-2 rounded-lg transition ${r.is_banned ? "text-secondary hover:bg-secondary/10" : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"}`}
+                            aria-label={r.is_banned ? "Unban" : "Ban"}
+                            title={r.is_banned ? "Unban wallet" : "Ban wallet"}
+                          >
+                            {r.is_banned ? <ShieldCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => deleteParticipant(r)}
+                            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
