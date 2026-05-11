@@ -1,16 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Download, Lock, Users, Coins, Award } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Download, Lock, Users, Coins, Award, LogOut, Trash2, Save, Calendar, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { shortAddr } from "@/lib/wallet";
+import { useAuth } from "@/hooks/use-auth";
+import { useSettings } from "@/hooks/use-settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel — WaveDrop" }] }),
   component: Admin,
 });
-
-const ADMIN_PASS = "wavedrop2024"; // simple demo gate; for production use proper auth
 
 type P = {
   id: string;
@@ -27,38 +27,104 @@ type P = {
 };
 
 function Admin() {
-  const [authed, setAuthed] = useState(false);
-  const [pass, setPass] = useState("");
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { settings, refresh: refreshSettings } = useSettings();
+
   const [rows, setRows] = useState<P[]>([]);
   const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingRows, setLoadingRows] = useState(false);
+  const [eventDate, setEventDate] = useState("");
+  const [tgUrl, setTgUrl] = useState("");
+  const [xUrl, setXUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [hasAdmins, setHasAdmins] = useState<boolean | null>(null);
 
+  // Redirect to /auth if not signed in
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("wd_admin") === "1") {
-      setAuthed(true);
-    }
-  }, []);
+    if (!authLoading && !user) navigate({ to: "/auth" });
+  }, [authLoading, user, navigate]);
 
+  // Check if any admin exists (for bootstrap)
   useEffect(() => {
-    if (!authed) return;
-    setLoading(true);
+    if (!user || isAdmin) return;
+    supabase
+      .from("user_roles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin")
+      .then(({ count }) => setHasAdmins((count ?? 0) > 0));
+  }, [user, isAdmin]);
+
+  // Load data when admin
+  useEffect(() => {
+    if (!isAdmin) return;
+    setLoadingRows(true);
     supabase
       .from("participants")
       .select("*")
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         setRows((data as P[]) ?? []);
-        setLoading(false);
+        setLoadingRows(false);
       });
-  }, [authed]);
+  }, [isAdmin]);
 
-  const login = (e: React.FormEvent) => {
+  useEffect(() => {
+    setEventDate(toDateInput(settings.event_end_at));
+    setTgUrl(settings.telegram_url);
+    setXUrl(settings.twitter_url);
+  }, [settings]);
+
+  const filtered = useMemo(() => {
+    if (!q) return rows;
+    const s = q.toLowerCase();
+    return rows.filter(
+      (r) =>
+        r.wallet_address.toLowerCase().includes(s) ||
+        r.referral_code.toLowerCase().includes(s) ||
+        (r.telegram_username ?? "").toLowerCase().includes(s)
+    );
+  }, [rows, q]);
+
+  const totalPoints = rows.reduce((a, r) => a + r.points, 0);
+  const totalRefs = rows.reduce((a, r) => a + r.referral_count, 0);
+
+  const claimAdmin = async () => {
+    const { data, error } = await supabase.rpc("claim_first_admin");
+    if (error) return toast.error(error.message);
+    if (data) {
+      toast.success("You are now the WaveDrop admin");
+      window.location.reload();
+    } else {
+      toast.error("An admin already exists. Contact them for access.");
+    }
+  };
+
+  const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pass === ADMIN_PASS) {
-      sessionStorage.setItem("wd_admin", "1");
-      setAuthed(true);
-      toast.success("Welcome, admin");
-    } else toast.error("Wrong password");
+    setSaving(true);
+    try {
+      const iso = new Date(eventDate).toISOString();
+      const { error } = await supabase
+        .from("app_settings")
+        .update({ event_end_at: iso, telegram_url: tgUrl, twitter_url: xUrl })
+        .eq("id", 1);
+      if (error) throw error;
+      toast.success("Settings saved");
+      await refreshSettings();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteParticipant = async (p: P) => {
+    if (!confirm(`Delete ${shortAddr(p.wallet_address)}? This cannot be undone.`)) return;
+    const { error } = await supabase.from("participants").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    setRows((r) => r.filter((x) => x.id !== p.id));
+    toast.success("Participant removed");
   };
 
   const exportCSV = () => {
@@ -86,52 +152,65 @@ function Admin() {
     toast.success(`Exported ${filtered.length} wallets`);
   };
 
-  if (!authed) {
+  // ---- Render states ----
+
+  if (authLoading) {
+    return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">Checking access…</div>;
+  }
+
+  if (!user) return null;
+
+  if (!isAdmin) {
     return (
-      <div className="max-w-md mx-auto px-4 py-24">
-        <form onSubmit={login} className="glass-card rounded-2xl p-8 text-center">
+      <div className="max-w-md mx-auto px-4 py-20">
+        <div className="glass-card rounded-2xl p-8 text-center">
           <Lock className="w-10 h-10 mx-auto text-primary mb-3" />
-          <h1 className="text-2xl font-bold text-gradient">Admin Panel</h1>
-          <p className="text-sm text-muted-foreground mt-1">Enter password to continue.</p>
-          <input
-            type="password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            placeholder="Password"
-            className="mt-5 w-full px-4 py-3 rounded-lg bg-input border border-border focus:outline-none focus:border-primary focus:shadow-neon-purple"
-          />
-          <button type="submit" className="btn-neon w-full mt-3">Enter</button>
-          <p className="text-[10px] text-muted-foreground mt-3 font-mono">Demo: wavedrop2024</p>
-        </form>
+          <h1 className="text-2xl font-bold text-gradient">Not authorized</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Your account ({user.email}) doesn't have admin role.
+          </p>
+
+          {hasAdmins === false && (
+            <div className="mt-5 p-4 rounded-xl border border-secondary/40 bg-secondary/5">
+              <Crown className="w-6 h-6 mx-auto text-secondary mb-2" />
+              <p className="text-sm">
+                No admin exists yet. Claim it to become the first WaveDrop administrator.
+              </p>
+              <button onClick={claimAdmin} className="btn-neon mt-3 w-full">
+                Claim Admin Access
+              </button>
+            </div>
+          )}
+
+          <button onClick={signOut} className="btn-outline-neon mt-4 w-full">
+            <LogOut className="w-4 h-4 inline mr-2" /> Sign out
+          </button>
+          <Link to="/" className="block text-xs text-muted-foreground mt-3">← Back home</Link>
+        </div>
       </div>
     );
   }
-
-  const filtered = rows.filter((r) => {
-    if (!q) return true;
-    const s = q.toLowerCase();
-    return (
-      r.wallet_address.toLowerCase().includes(s) ||
-      r.referral_code.toLowerCase().includes(s) ||
-      (r.telegram_username ?? "").toLowerCase().includes(s)
-    );
-  });
-
-  const totalPoints = rows.reduce((a, r) => a + r.points, 0);
-  const totalRefs = rows.reduce((a, r) => a + r.referral_count, 0);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-5xl font-bold text-gradient">Admin Panel</h1>
-          <p className="text-muted-foreground mt-1">Manage WaveDrop participants.</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Signed in as <span className="font-mono text-foreground">{user.email}</span>
+          </p>
         </div>
-        <button onClick={exportCSV} className="btn-neon inline-flex items-center gap-2">
-          <Download className="w-4 h-4" /> Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={exportCSV} className="btn-neon inline-flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+          <button onClick={signOut} className="btn-outline-neon inline-flex items-center gap-2">
+            <LogOut className="w-4 h-4" /> Sign out
+          </button>
+        </div>
       </header>
 
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
           { i: Users, l: "Participants", v: rows.length },
@@ -147,11 +226,39 @@ function Admin() {
         ))}
       </div>
 
+      {/* Settings */}
+      <form onSubmit={saveSettings} className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-bold">Event & Links Configuration</h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          <Field label="Event end date">
+            <input
+              type="datetime-local"
+              required
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="input"
+            />
+          </Field>
+          <Field label="Telegram URL">
+            <input value={tgUrl} onChange={(e) => setTgUrl(e.target.value)} className="input" />
+          </Field>
+          <Field label="Twitter / X URL">
+            <input value={xUrl} onChange={(e) => setXUrl(e.target.value)} className="input" />
+          </Field>
+        </div>
+        <button type="submit" disabled={saving} className="btn-neon inline-flex items-center gap-2">
+          <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Settings"}
+        </button>
+      </form>
+
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search wallet, code, telegram…"
-        className="w-full px-4 py-3 rounded-lg bg-input border border-border focus:outline-none focus:border-primary focus:shadow-neon-purple"
+        className="input w-full"
       />
 
       <div className="glass-card rounded-2xl overflow-hidden">
@@ -166,13 +273,14 @@ function Admin() {
                 <th className="px-4 py-3 text-right">Refs</th>
                 <th className="px-4 py-3 text-center">Tasks</th>
                 <th className="px-4 py-3 text-left">Joined</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Loading…</td></tr>
+              {loadingRows ? (
+                <tr><td colSpan={8} className="p-10 text-center text-muted-foreground">Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">No participants.</td></tr>
+                <tr><td colSpan={8} className="p-10 text-center text-muted-foreground">No participants.</td></tr>
               ) : (
                 filtered.map((r) => {
                   const tasks = [r.task_telegram_joined, r.task_twitter_followed, r.task_telegram_submitted].filter(Boolean).length;
@@ -187,6 +295,15 @@ function Admin() {
                         <span className={`text-xs font-mono ${tasks === 3 ? "text-secondary" : "text-muted-foreground"}`}>{tasks}/3</span>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => deleteParticipant(r)}
+                          className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })
@@ -195,6 +312,37 @@ function Admin() {
           </table>
         </div>
       </div>
+
+      <style>{`
+        .input {
+          padding: 0.65rem 0.875rem;
+          border-radius: 0.625rem;
+          background: var(--input);
+          border: 1px solid var(--border);
+          color: var(--foreground);
+          color-scheme: dark;
+        }
+        .input:focus {
+          outline: none;
+          border-color: var(--primary);
+          box-shadow: var(--shadow-neon-purple);
+        }
+      `}</style>
     </div>
   );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-1">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function toDateInput(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

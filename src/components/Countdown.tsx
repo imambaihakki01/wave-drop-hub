@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-
-// Airdrop event: 30 days from now (could be configured)
-const TARGET = (() => {
-  if (typeof window === "undefined") return Date.now() + 30 * 86400000;
-  const stored = localStorage.getItem("wavedrop_target");
-  if (stored) return Number(stored);
-  const t = Date.now() + 30 * 86400000;
-  localStorage.setItem("wavedrop_target", String(t));
-  return t;
-})();
+import { useSettings } from "@/hooks/use-settings";
 
 function diff(t: number) {
   const d = Math.max(0, t - Date.now());
@@ -17,15 +8,29 @@ function diff(t: number) {
     hours: Math.floor((d / 3600000) % 24),
     mins: Math.floor((d / 60000) % 60),
     secs: Math.floor((d / 1000) % 60),
+    ended: d === 0,
   };
 }
 
 export function Countdown() {
-  const [t, setT] = useState(diff(TARGET));
+  const { settings } = useSettings();
+  const target = new Date(settings.event_end_at).getTime();
+  const [t, setT] = useState(diff(target));
+
   useEffect(() => {
-    const id = setInterval(() => setT(diff(TARGET)), 1000);
+    setT(diff(target));
+    const id = setInterval(() => setT(diff(target)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [target]);
+
+  if (t.ended) {
+    return (
+      <div className="glass-card rounded-xl px-6 py-4 inline-block">
+        <div className="text-2xl font-bold text-gradient">Event ended</div>
+        <div className="text-xs text-muted-foreground mt-1">Snapshot has been taken</div>
+      </div>
+    );
+  }
 
   const cell = (label: string, value: number) => (
     <div className="glass-card rounded-xl px-4 py-3 sm:px-6 sm:py-4 min-w-[68px] sm:min-w-[88px] text-center">

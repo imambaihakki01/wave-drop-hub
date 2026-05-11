@@ -18,11 +18,19 @@ export type Participant = {
 
 const REF_KEY = "wavedrop_ref";
 
-export function captureReferral() {
+export async function captureReferral() {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
   const ref = params.get("ref");
-  if (ref) localStorage.setItem(REF_KEY, ref.toUpperCase());
+  if (!ref) return;
+  const code = ref.toUpperCase().trim();
+  // Validate the code exists before saving
+  const { data: exists } = await supabase.rpc("referral_exists", { _code: code });
+  if (exists) {
+    localStorage.setItem(REF_KEY, code);
+  } else {
+    console.warn("Invalid referral code ignored:", code);
+  }
 }
 
 export function useWallet() {
@@ -59,45 +67,40 @@ export function useWallet() {
 
       let p = await fetchParticipant(addr);
       if (!p) {
-        const refCode = genReferralCode();
+        // Generate unique referral code (retry on collision)
+        let refCode = genReferralCode();
         const referredBy =
           typeof window !== "undefined" ? localStorage.getItem(REF_KEY) : null;
 
-        const { data: inserted, error } = await supabase
-          .from("participants")
-          .insert({
-            wallet_address: addr,
-            referral_code: refCode,
-            referred_by: referredBy,
-          })
-          .select()
-          .single();
+        let attempts = 0;
+        while (attempts < 5) {
+          const { data: inserted, error } = await supabase
+            .from("participants")
+            .insert({
+              wallet_address: addr,
+              referral_code: refCode,
+              referred_by: referredBy && referredBy !== refCode ? referredBy : null,
+            })
+            .select()
+            .single();
 
-        if (error) {
+          if (!error) { p = inserted as Participant; break; }
           if (error.code === "23505") {
-            // race: re-fetch
-            p = await fetchParticipant(addr);
-          } else throw error;
-        } else {
-          p = inserted as Participant;
-          // award referrer
-          if (referredBy) {
-            const { data: ref } = await supabase
-              .from("participants")
-              .select("id, points, referral_count")
-              .eq("referral_code", referredBy)
-              .maybeSingle();
-            if (ref) {
-              await supabase
-                .from("participants")
-                .update({
-                  points: (ref.points ?? 0) + 20,
-                  referral_count: (ref.referral_count ?? 0) + 1,
-                })
-                .eq("id", ref.id);
-            }
-            localStorage.removeItem(REF_KEY);
+            // Could be wallet duplicate (race) or referral_code collision
+            const existing = await fetchParticipant(addr);
+            if (existing) { p = existing; break; }
+            refCode = genReferralCode();
+            attempts++;
+            continue;
           }
+          throw error;
+        }
+        if (!p) throw new Error("Could not register wallet, please retry");
+
+        // Award referrer atomically (DB-side guard)
+        if (referredBy) {
+          await supabase.rpc("award_referral", { _ref_code: referredBy });
+          localStorage.removeItem(REF_KEY);
         }
         setParticipant(p);
         toast.success("Wallet connected — welcome to WaveDrop!");
