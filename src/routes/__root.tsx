@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { Header } from "@/components/Header";
+import { WaveBackground } from "@/components/WaveBackground";
 import { captureReferral } from "@/hooks/use-wallet";
 
 import appCss from "../styles.css?url";
@@ -93,13 +94,36 @@ function RootComponent() {
   useEffect(() => { captureReferral(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
+      <WaveBackground />
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">
           <Outlet />
         </main>
-        <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} WaveDrop. Surf the chain.
+        <footer className="border-t border-border py-8 mt-10">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <div className="font-bold text-gradient text-lg">WaveDrop</div>
+              <p className="text-xs text-muted-foreground mt-2 max-w-xs">
+                The future of community airdrops. Surf the chain, earn rewards.
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5 text-muted-foreground">
+              <div className="text-xs uppercase tracking-widest text-foreground mb-1">Product</div>
+              <Link to="/how-it-works" className="hover:text-foreground transition">How it Works</Link>
+              <Link to="/tokenomics" className="hover:text-foreground transition">Tokenomics</Link>
+              <Link to="/leaderboard" className="hover:text-foreground transition">Leaderboard</Link>
+              <Link to="/faq" className="hover:text-foreground transition">FAQ</Link>
+            </div>
+            <div className="flex flex-col gap-1.5 text-muted-foreground">
+              <div className="text-xs uppercase tracking-widest text-foreground mb-1">Account</div>
+              <Link to="/dashboard" className="hover:text-foreground transition">Dashboard</Link>
+              <Link to="/admin" className="hover:text-foreground transition">Admin</Link>
+            </div>
+          </div>
+          <div className="text-center text-xs text-muted-foreground mt-8">
+            © {new Date().getFullYear()} WaveDrop. Surf the chain.
+          </div>
         </footer>
       </div>
       <Toaster

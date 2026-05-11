@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Gift, Users, Trophy, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, Gift, Users, Trophy, Sparkles, Wallet, BookOpen, Coins, HelpCircle } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { useWallet } from "@/hooks/use-wallet";
 
@@ -105,6 +105,31 @@ function Home() {
               <div className="text-2xl md:text-4xl font-bold text-gradient font-mono">{s.v}</div>
               <div className="text-[10px] md:text-xs uppercase tracking-widest text-muted-foreground mt-1">{s.l}</div>
             </div>
+          ))}
+        </div>
+
+        {/* Explore links */}
+        <div className="mt-10 grid sm:grid-cols-3 gap-4">
+          {[
+            { to: "/how-it-works", icon: BookOpen, title: "How It Works", desc: "4 steps to earn." },
+            { to: "/tokenomics", icon: Coins, title: "Tokenomics", desc: "$WAVE supply & utility." },
+            { to: "/faq", icon: HelpCircle, title: "FAQ", desc: "Common questions." },
+          ].map((c, i) => (
+            <Link
+              key={c.to}
+              to={c.to}
+              className="glass-card rounded-2xl p-5 group hover:-translate-y-1 transition-all animate-fade-in"
+              style={{ animationDelay: `${0.05 * i}s` }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-neon-purple">
+                  <c.icon className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition" />
+              </div>
+              <div className="mt-3 font-bold">{c.title}</div>
+              <div className="text-xs text-muted-foreground">{c.desc}</div>
+            </Link>
           ))}
         </div>
       </section>

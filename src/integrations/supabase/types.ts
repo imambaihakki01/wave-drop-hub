@@ -42,6 +42,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_banned: boolean
+          last_check_in: string | null
           points: number
           referral_code: string
           referral_count: number
@@ -56,6 +58,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_banned?: boolean
+          last_check_in?: string | null
           points?: number
           referral_code: string
           referral_count?: number
@@ -70,6 +74,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_banned?: boolean
+          last_check_in?: string | null
           points?: number
           referral_code?: string
           referral_count?: number
@@ -109,12 +115,89 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_points: {
+        Args: { _delta: number; _participant_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_banned: boolean
+          last_check_in: string | null
+          points: number
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+          task_telegram_joined: boolean
+          task_telegram_submitted: boolean
+          task_twitter_followed: boolean
+          telegram_username: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_toggle_ban: {
+        Args: { _participant_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_banned: boolean
+          last_check_in: string | null
+          points: number
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+          task_telegram_joined: boolean
+          task_telegram_submitted: boolean
+          task_twitter_followed: boolean
+          telegram_username: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       award_referral: { Args: { _ref_code: string }; Returns: boolean }
       award_task: {
         Args: { _task: string; _wallet: string }
         Returns: {
           created_at: string
           id: string
+          is_banned: boolean
+          last_check_in: string | null
+          points: number
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+          task_telegram_joined: boolean
+          task_telegram_submitted: boolean
+          task_twitter_followed: boolean
+          telegram_username: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      claim_daily: {
+        Args: { _wallet: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_banned: boolean
+          last_check_in: string | null
           points: number
           referral_code: string
           referral_count: number
@@ -147,6 +230,8 @@ export type Database = {
         Returns: {
           created_at: string
           id: string
+          is_banned: boolean
+          last_check_in: string | null
           points: number
           referral_code: string
           referral_count: number

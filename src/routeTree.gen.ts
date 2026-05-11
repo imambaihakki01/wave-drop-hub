@@ -9,15 +9,33 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TokenomicsRouteImport } from './routes/tokenomics'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TokenomicsRoute = TokenomicsRouteImport.update({
+  id: '/tokenomics',
+  path: '/tokenomics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -46,14 +64,20 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/tokenomics': typeof TokenomicsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/tokenomics': typeof TokenomicsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,14 +85,42 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/tokenomics': typeof TokenomicsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/dashboard' | '/leaderboard'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
+    | '/leaderboard'
+    | '/tokenomics'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/dashboard' | '/leaderboard'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/dashboard' | '/leaderboard'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
+    | '/leaderboard'
+    | '/tokenomics'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
+    | '/leaderboard'
+    | '/tokenomics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,16 +128,40 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  FaqRoute: typeof FaqRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  TokenomicsRoute: typeof TokenomicsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tokenomics': {
+      id: '/tokenomics'
+      path: '/tokenomics'
+      fullPath: '/tokenomics'
+      preLoaderRoute: typeof TokenomicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leaderboard': {
       id: '/leaderboard'
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -124,18 +200,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  FaqRoute: FaqRoute,
+  HowItWorksRoute: HowItWorksRoute,
   LeaderboardRoute: LeaderboardRoute,
+  TokenomicsRoute: TokenomicsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
