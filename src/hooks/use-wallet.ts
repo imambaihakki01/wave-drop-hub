@@ -14,6 +14,8 @@ export type Participant = {
   task_telegram_joined: boolean;
   task_twitter_followed: boolean;
   task_telegram_submitted: boolean;
+  is_banned: boolean;
+  last_check_in: string | null;
 };
 
 const REF_KEY = "wavedrop_ref";
