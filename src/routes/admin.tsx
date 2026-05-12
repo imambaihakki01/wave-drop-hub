@@ -2,13 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Download, Lock, Users, Coins, Award, Trash2, Save, Calendar,
-  Ban, ShieldCheck, Plus, Minus, Wallet,
+  Ban, ShieldCheck, Plus, Minus, Wallet, KeyRound,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { shortAddr } from "@/lib/wallet";
 import { useWallet } from "@/hooks/use-wallet";
 import { useSettings } from "@/hooks/use-settings";
+import { useAdminSession } from "@/hooks/use-admin-session";
+import {
+  adminAdjustPoints, adminToggleBan, adminDeleteParticipant, adminUpdateSettings,
+} from "@/lib/admin.functions";
 
 export const ADMIN_WALLET = "0xfa7447e7ef44c1f36e6bd424edbf0324df92cd1a";
 export const isAdminWallet = (a?: string | null) =>
@@ -38,6 +43,11 @@ function Admin() {
   const { address, connect, loading: walletLoading, hydrated } = useWallet();
   const isAdmin = isAdminWallet(address);
   const { settings, refresh: refreshSettings } = useSettings();
+  const adminAuth = useAdminSession();
+  const callAdjust = useServerFn(adminAdjustPoints);
+  const callToggleBan = useServerFn(adminToggleBan);
+  const callDelete = useServerFn(adminDeleteParticipant);
+  const callUpdateSettings = useServerFn(adminUpdateSettings);
 
   const [rows, setRows] = useState<P[]>([]);
   const [q, setQ] = useState("");
@@ -107,19 +117,22 @@ function Admin() {
 
   const maxBar = Math.max(1, ...chart.map((b) => b.count));
 
+  const withAuth = async () => {
+    const s = await adminAuth.ensure();
+    if (!s) throw new Error("Admin signature required");
+    return { message: s.message, signature: s.signature };
+  };
+
   const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) return;
     setSaving(true);
     try {
+      const auth = await withAuth();
       const iso = new Date(eventDate).toISOString();
-      const { error } = await supabase.rpc("admin_update_settings", {
-        _caller: address,
-        _event_end_at: iso,
-        _telegram_url: tgUrl,
-        _twitter_url: xUrl,
+      await callUpdateSettings({
+        data: { ...auth, eventEndAt: iso, telegramUrl: tgUrl, twitterUrl: xUrl },
       });
-      if (error) throw error;
       toast.success("Settings saved");
       await refreshSettings();
     } catch (e: any) {
@@ -132,36 +145,40 @@ function Admin() {
   const deleteParticipant = async (p: P) => {
     if (!address) return;
     if (!confirm(`Delete ${shortAddr(p.wallet_address)}? This cannot be undone.`)) return;
-    const { error } = await supabase.rpc("admin_delete_participant", {
-      _caller: address,
-      _participant_id: p.id,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.filter((x) => x.id !== p.id));
-    toast.success("Participant removed");
+    try {
+      const auth = await withAuth();
+      await callDelete({ data: { ...auth, participantId: p.id } });
+      setRows((r) => r.filter((x) => x.id !== p.id));
+      toast.success("Participant removed");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const toggleBan = async (p: P) => {
     if (!address) return;
-    const { data, error } = await supabase.rpc("admin_toggle_ban", {
-      _caller: address,
-      _participant_id: p.id,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
-    toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
+    try {
+      const auth = await withAuth();
+      const updated = await callToggleBan({ data: { ...auth, participantId: p.id } });
+      setRows((r) => r.map((x) => (x.id === p.id ? (updated as P) : x)));
+      toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const adjustPoints = async (p: P, delta: number) => {
     if (!address) return;
-    const { data, error } = await supabase.rpc("admin_adjust_points", {
-      _caller: address,
-      _participant_id: p.id,
-      _delta: delta,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
-    toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
+    try {
+      const auth = await withAuth();
+      const updated = await callAdjust({
+        data: { ...auth, participantId: p.id, delta },
+      });
+      setRows((r) => r.map((x) => (x.id === p.id ? (updated as P) : x)));
+      toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const exportCSV = () => {
@@ -237,7 +254,24 @@ function Admin() {
             Admin wallet <span className="font-mono text-foreground">{shortAddr(address)}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {adminAuth.isValid ? (
+            <button
+              onClick={adminAuth.clear}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-secondary/40 text-secondary text-xs hover:bg-secondary/10"
+            >
+              <ShieldCheck className="w-4 h-4" /> Session active · Revoke
+            </button>
+          ) : (
+            <button
+              onClick={adminAuth.sign}
+              disabled={adminAuth.signing}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-primary/40 text-primary text-xs hover:bg-primary/10"
+            >
+              <KeyRound className="w-4 h-4" />
+              {adminAuth.signing ? "Awaiting signature…" : "Sign admin session"}
+            </button>
+          )}
           <button onClick={exportCSV} className="btn-neon inline-flex items-center gap-2">
             <Download className="w-4 h-4" /> Export CSV
           </button>
