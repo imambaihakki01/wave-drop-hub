@@ -20,7 +20,7 @@ const faqs = [
   { q: "Is there any cost or gas fee?", a: "No. Orbexa Network is 100% free during the campaign phase. You only need a wallet — no on-chain transactions required to participate." },
   { q: "How are referrals validated?", a: "Each wallet has a unique referral code. We award referral points only when the new wallet is successfully registered and never previously linked." },
   { q: "When does the snapshot happen?", a: "Check the live countdown on the home page. The snapshot timestamp is set by our team and visible in real time." },
-  { q: "Can I use multiple wallets?", a: "Sybil attacks are detected and banned. Stick to one wallet — fairness keeps the wave strong." },
+  { q: "Can I use multiple wallets?", a: "Sybil attacks are detected and banned. Stick to one wallet — fairness keeps the orbit strong." },
   { q: "How will rewards be distributed?", a: "Once the snapshot is taken, eligible wallets will receive Orbexa Network tokens directly to their connected address. Watch our X account for the exact distribution date." },
 ];
 

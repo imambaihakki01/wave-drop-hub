@@ -126,7 +126,7 @@ function RootComponent() {
             </div>
           </div>
           <div className="text-center text-xs text-muted-foreground mt-8">
-            © {new Date().getFullYear()} Orbexa Network. Surf the chain.
+            © {new Date().getFullYear()} Orbexa Network. Enter the orbit.
           </div>
         </footer>
       </div>

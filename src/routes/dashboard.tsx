@@ -48,7 +48,7 @@ function Dashboard() {
   }
 
   const refLink = typeof window !== "undefined" ? `${window.location.origin}/?ref=${participant.referral_code}` : "";
-  const shareText = `🌊 I'm riding the Orbexa Network airdrop wave! Join via my link and we both earn points.`;
+  const shareText = `🛰️ I'm orbiting the Orbexa Network airdrop! Join via my link and we both earn points.`;
 
   const tasksDone =
     [participant.task_telegram_joined, participant.task_twitter_followed, participant.task_telegram_submitted].filter(Boolean).length;
@@ -57,8 +57,8 @@ function Dashboard() {
   // Tier system
   const tier =
     participant.points >= 200 ? { name: "Tsunami", color: "oklch(0.7 0.28 340)" }
-    : participant.points >= 100 ? { name: "Wave", color: "oklch(0.65 0.28 295)" }
-    : participant.points >= 50 ? { name: "Surfer", color: "oklch(0.7 0.22 235)" }
+    : participant.points >= 100 ? { name: "Pulsar", color: "oklch(0.65 0.28 295)" }
+    : participant.points >= 50 ? { name: "Comet", color: "oklch(0.7 0.22 235)" }
     : { name: "Drifter", color: "oklch(0.7 0.04 280)" };
 
   // Daily check-in availability

@@ -5,9 +5,9 @@ export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
       { title: "How It Works — Orbexa Network" },
-      { name: "description", content: "Four simple steps to ride the Orbexa Network airdrop wave: connect, complete, refer, and claim." },
+      { name: "description", content: "Four simple steps to ride the Orbexa Network airdrop orbit: connect, complete, refer, and claim." },
       { property: "og:title", content: "How It Works — Orbexa Network" },
-      { property: "og:description", content: "Four simple steps to ride the Orbexa Network airdrop wave." },
+      { property: "og:description", content: "Four simple steps to ride the Orbexa Network airdrop orbit." },
     ],
   }),
   component: HowItWorks,
@@ -51,7 +51,7 @@ function HowItWorks() {
       </div>
 
       <div className="glass-card rounded-2xl p-8 text-center animate-pulse-glow">
-        <h3 className="text-2xl font-bold text-gradient">Ready to ride the wave?</h3>
+        <h3 className="text-2xl font-bold text-gradient">Ready to enter the orbit?</h3>
         <p className="text-sm text-muted-foreground mt-2">Connect your wallet to start earning points right now.</p>
         <Link to="/dashboard" className="btn-neon mt-5 inline-flex items-center gap-2">
           Go to Dashboard <ArrowRight className="w-4 h-4" />

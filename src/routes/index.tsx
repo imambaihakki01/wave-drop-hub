@@ -29,7 +29,7 @@ function Home() {
             <span className="text-gradient">Orbexa Network</span>
           </h1>
           <p className="mt-3 text-base md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            The future of community airdrops. Connect, complete, refer — ride the wave to on-chain rewards.
+            The future of community airdrops. Connect, complete, refer — enter the orbit to on-chain rewards.
           </p>
 
           <div className="mt-10 animate-fade-in" style={{ animationDelay: "0.2s" }}>
@@ -97,7 +97,7 @@ function Home() {
         {/* Stats strip */}
         <div className="mt-10 glass-card rounded-2xl p-6 md:p-10 grid grid-cols-3 gap-4 text-center animate-pulse-glow">
           {[
-            { v: "10K+", l: "Wave riders" },
+            { v: "10K+", l: "Orbiters" },
             { v: "$250K", l: "Total reward pool" },
             { v: "30 Days", l: "Until snapshot" },
           ].map((s) => (
