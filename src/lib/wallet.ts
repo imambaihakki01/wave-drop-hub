@@ -26,7 +26,7 @@ export function genReferralCode() {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
 }
 
-const KEY = "wavedrop_wallet";
+const KEY = "michat_wallet";
 export const walletStorage = {
   get: () => (typeof window === "undefined" ? null : localStorage.getItem(KEY)),
   set: (v: string) => localStorage.setItem(KEY, v),

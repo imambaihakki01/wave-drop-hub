@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Panel — WaveDrop" }] }),
+  head: () => ({ meta: [{ title: "Admin Panel — Michat Network" }] }),
   component: Admin,
 });
 
@@ -121,7 +121,7 @@ function Admin() {
   const claimAdmin = async () => {
     const { data, error } = await supabase.rpc("claim_first_admin");
     if (error) return toast.error(error.message);
-    if (data) { toast.success("You are now the WaveDrop admin"); window.location.reload(); }
+    if (data) { toast.success("You are now the Michat Network admin"); window.location.reload(); }
     else toast.error("An admin already exists. Contact them for access.");
   };
 
@@ -185,7 +185,7 @@ function Admin() {
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `wavedrop-participants-${Date.now()}.csv`; a.click();
+    a.href = url; a.download = `michat-participants-${Date.now()}.csv`; a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} wallets`);
   };
@@ -205,7 +205,7 @@ function Admin() {
           {hasAdmins === false && (
             <div className="mt-5 p-4 rounded-xl border border-secondary/40 bg-secondary/5">
               <Crown className="w-6 h-6 mx-auto text-secondary mb-2" />
-              <p className="text-sm">No admin exists yet. Claim it to become the first WaveDrop administrator.</p>
+              <p className="text-sm">No admin exists yet. Claim it to become the first Michat Network administrator.</p>
               <button onClick={claimAdmin} className="btn-neon mt-3 w-full">Claim Admin Access</button>
             </div>
           )}

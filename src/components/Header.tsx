@@ -27,7 +27,7 @@ export function Header() {
             <span className="absolute inset-0 rounded-xl border border-primary/40 animate-pulse-glow" />
           </div>
           <div className="leading-tight">
-            <div className="font-bold text-lg text-gradient">WaveDrop</div>
+            <div className="font-bold text-lg text-gradient">Michat Network</div>
             <div className="text-[10px] text-muted-foreground hidden sm:block">
               The Future of Community Airdrop
             </div>
