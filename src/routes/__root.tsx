@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { Header } from "@/components/Header";
 import { WaveBackground } from "@/components/WaveBackground";
+import { Logo } from "@/components/Logo";
 import { captureReferral } from "@/hooks/use-wallet";
 
 import appCss from "../styles.css?url";
@@ -103,9 +104,12 @@ function RootComponent() {
         <footer className="border-t border-border py-8 mt-10">
           <div className="max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-3 gap-6 text-sm">
             <div>
-              <div className="font-bold text-gradient text-lg">Orbexa Network</div>
+              <div className="flex items-center gap-2">
+                <Logo size={32} />
+                <div className="font-bold text-gradient text-lg">Orbexa Network</div>
+              </div>
               <p className="text-xs text-muted-foreground mt-2 max-w-xs">
-                The future of community airdrops. Surf the chain, earn rewards.
+                The future of community airdrops. Enter the orbit, earn on-chain rewards.
               </p>
             </div>
             <div className="flex flex-col gap-1.5 text-muted-foreground">
@@ -122,7 +126,7 @@ function RootComponent() {
             </div>
           </div>
           <div className="text-center text-xs text-muted-foreground mt-8">
-            © {new Date().getFullYear()} Orbexa Network. Surf the chain.
+            © {new Date().getFullYear()} Orbexa Network. Enter the orbit.
           </div>
         </footer>
       </div>

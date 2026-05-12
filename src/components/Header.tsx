@@ -1,8 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
-import { Wallet, LogOut, Waves, Menu, X } from "lucide-react";
+import { Wallet, LogOut, Menu, X } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { shortAddr } from "@/lib/wallet";
+import { Logo } from "./Logo";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -22,10 +23,7 @@ export function Header() {
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <div className="relative w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-neon-purple group-hover:scale-110 transition-transform">
-            <Waves className="w-5 h-5 text-primary-foreground" />
-            <span className="absolute inset-0 rounded-xl border border-primary/40 animate-pulse-glow" />
-          </div>
+          <Logo size={36} className="group-hover:scale-110 transition-transform" />
           <div className="leading-tight">
             <div className="font-bold text-lg text-gradient">Orbexa Network</div>
             <div className="text-[10px] text-muted-foreground hidden sm:block">
