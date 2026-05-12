@@ -43,6 +43,11 @@ function Admin() {
   const { address, connect, loading: walletLoading, hydrated } = useWallet();
   const isAdmin = isAdminWallet(address);
   const { settings, refresh: refreshSettings } = useSettings();
+  const adminAuth = useAdminSession();
+  const callAdjust = useServerFn(adminAdjustPoints);
+  const callToggleBan = useServerFn(adminToggleBan);
+  const callDelete = useServerFn(adminDeleteParticipant);
+  const callUpdateSettings = useServerFn(adminUpdateSettings);
 
   const [rows, setRows] = useState<P[]>([]);
   const [q, setQ] = useState("");
