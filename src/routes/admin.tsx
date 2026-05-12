@@ -117,19 +117,22 @@ function Admin() {
 
   const maxBar = Math.max(1, ...chart.map((b) => b.count));
 
+  const withAuth = async () => {
+    const s = await adminAuth.ensure();
+    if (!s) throw new Error("Admin signature required");
+    return { message: s.message, signature: s.signature };
+  };
+
   const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) return;
     setSaving(true);
     try {
+      const auth = await withAuth();
       const iso = new Date(eventDate).toISOString();
-      const { error } = await supabase.rpc("admin_update_settings", {
-        _caller: address,
-        _event_end_at: iso,
-        _telegram_url: tgUrl,
-        _twitter_url: xUrl,
+      await callUpdateSettings({
+        data: { ...auth, eventEndAt: iso, telegramUrl: tgUrl, twitterUrl: xUrl },
       });
-      if (error) throw error;
       toast.success("Settings saved");
       await refreshSettings();
     } catch (e: any) {
@@ -142,36 +145,40 @@ function Admin() {
   const deleteParticipant = async (p: P) => {
     if (!address) return;
     if (!confirm(`Delete ${shortAddr(p.wallet_address)}? This cannot be undone.`)) return;
-    const { error } = await supabase.rpc("admin_delete_participant", {
-      _caller: address,
-      _participant_id: p.id,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.filter((x) => x.id !== p.id));
-    toast.success("Participant removed");
+    try {
+      const auth = await withAuth();
+      await callDelete({ data: { ...auth, participantId: p.id } });
+      setRows((r) => r.filter((x) => x.id !== p.id));
+      toast.success("Participant removed");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const toggleBan = async (p: P) => {
     if (!address) return;
-    const { data, error } = await supabase.rpc("admin_toggle_ban", {
-      _caller: address,
-      _participant_id: p.id,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
-    toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
+    try {
+      const auth = await withAuth();
+      const updated = await callToggleBan({ data: { ...auth, participantId: p.id } });
+      setRows((r) => r.map((x) => (x.id === p.id ? (updated as P) : x)));
+      toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const adjustPoints = async (p: P, delta: number) => {
     if (!address) return;
-    const { data, error } = await supabase.rpc("admin_adjust_points", {
-      _caller: address,
-      _participant_id: p.id,
-      _delta: delta,
-    });
-    if (error) return toast.error(error.message);
-    setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
-    toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
+    try {
+      const auth = await withAuth();
+      const updated = await callAdjust({
+        data: { ...auth, participantId: p.id, delta },
+      });
+      setRows((r) => r.map((x) => (x.id === p.id ? (updated as P) : x)));
+      toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
 
   const exportCSV = () => {
