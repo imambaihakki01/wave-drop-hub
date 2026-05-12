@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Download, Lock, Users, Coins, Award, Trash2, Save, Calendar,
-  Ban, ShieldCheck, Plus, Minus, Wallet, KeyRound, ShieldAlert,
+  Ban, ShieldCheck, Plus, Minus, Wallet, KeyRound,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
