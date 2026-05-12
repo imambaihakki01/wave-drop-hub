@@ -4,6 +4,7 @@ import { Wallet, LogOut, Menu, X } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { shortAddr } from "@/lib/wallet";
 import { Logo } from "./Logo";
+import { FxIntensityControl } from "./FxIntensityControl";
 
 const nav = [
   { to: "/", label: "Home" },
