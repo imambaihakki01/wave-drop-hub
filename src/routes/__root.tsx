@@ -104,9 +104,12 @@ function RootComponent() {
         <footer className="border-t border-border py-8 mt-10">
           <div className="max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-3 gap-6 text-sm">
             <div>
-              <div className="font-bold text-gradient text-lg">Orbexa Network</div>
+              <div className="flex items-center gap-2">
+                <Logo size={32} />
+                <div className="font-bold text-gradient text-lg">Orbexa Network</div>
+              </div>
               <p className="text-xs text-muted-foreground mt-2 max-w-xs">
-                The future of community airdrops. Surf the chain, earn rewards.
+                The future of community airdrops. Enter the orbit, earn on-chain rewards.
               </p>
             </div>
             <div className="flex flex-col gap-1.5 text-muted-foreground">
