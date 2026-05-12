@@ -2,13 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Download, Lock, Users, Coins, Award, Trash2, Save, Calendar,
-  Ban, ShieldCheck, Plus, Minus, Wallet,
+  Ban, ShieldCheck, Plus, Minus, Wallet, KeyRound, ShieldAlert,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { shortAddr } from "@/lib/wallet";
 import { useWallet } from "@/hooks/use-wallet";
 import { useSettings } from "@/hooks/use-settings";
+import { useAdminSession } from "@/hooks/use-admin-session";
+import {
+  adminAdjustPoints, adminToggleBan, adminDeleteParticipant, adminUpdateSettings,
+} from "@/lib/admin.functions";
 
 export const ADMIN_WALLET = "0xfa7447e7ef44c1f36e6bd424edbf0324df92cd1a";
 export const isAdminWallet = (a?: string | null) =>
