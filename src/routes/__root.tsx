@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { Header } from "@/components/Header";
 import { WaveBackground } from "@/components/WaveBackground";
+import { Logo } from "@/components/Logo";
 import { captureReferral } from "@/hooks/use-wallet";
 
 import appCss from "../styles.css?url";
