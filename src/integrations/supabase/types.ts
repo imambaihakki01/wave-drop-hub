@@ -115,52 +115,129 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_adjust_points: {
-        Args: { _delta: number; _participant_id: string }
-        Returns: {
-          created_at: string
-          id: string
-          is_banned: boolean
-          last_check_in: string | null
-          points: number
-          referral_code: string
-          referral_count: number
-          referred_by: string | null
-          task_telegram_joined: boolean
-          task_telegram_submitted: boolean
-          task_twitter_followed: boolean
-          telegram_username: string | null
-          updated_at: string
-          wallet_address: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "participants"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+      admin_adjust_points:
+        | {
+            Args: { _caller: string; _delta: number; _participant_id: string }
+            Returns: {
+              created_at: string
+              id: string
+              is_banned: boolean
+              last_check_in: string | null
+              points: number
+              referral_code: string
+              referral_count: number
+              referred_by: string | null
+              task_telegram_joined: boolean
+              task_telegram_submitted: boolean
+              task_twitter_followed: boolean
+              telegram_username: string | null
+              updated_at: string
+              wallet_address: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "participants"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { _delta: number; _participant_id: string }
+            Returns: {
+              created_at: string
+              id: string
+              is_banned: boolean
+              last_check_in: string | null
+              points: number
+              referral_code: string
+              referral_count: number
+              referred_by: string | null
+              task_telegram_joined: boolean
+              task_telegram_submitted: boolean
+              task_twitter_followed: boolean
+              telegram_username: string | null
+              updated_at: string
+              wallet_address: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "participants"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      admin_delete_participant: {
+        Args: { _caller: string; _participant_id: string }
+        Returns: boolean
       }
-      admin_toggle_ban: {
-        Args: { _participant_id: string }
+      admin_toggle_ban:
+        | {
+            Args: { _caller: string; _participant_id: string }
+            Returns: {
+              created_at: string
+              id: string
+              is_banned: boolean
+              last_check_in: string | null
+              points: number
+              referral_code: string
+              referral_count: number
+              referred_by: string | null
+              task_telegram_joined: boolean
+              task_telegram_submitted: boolean
+              task_twitter_followed: boolean
+              telegram_username: string | null
+              updated_at: string
+              wallet_address: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "participants"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { _participant_id: string }
+            Returns: {
+              created_at: string
+              id: string
+              is_banned: boolean
+              last_check_in: string | null
+              points: number
+              referral_code: string
+              referral_count: number
+              referred_by: string | null
+              task_telegram_joined: boolean
+              task_telegram_submitted: boolean
+              task_twitter_followed: boolean
+              telegram_username: string | null
+              updated_at: string
+              wallet_address: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "participants"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      admin_update_settings: {
+        Args: {
+          _caller: string
+          _event_end_at: string
+          _telegram_url: string
+          _twitter_url: string
+        }
         Returns: {
-          created_at: string
-          id: string
-          is_banned: boolean
-          last_check_in: string | null
-          points: number
-          referral_code: string
-          referral_count: number
-          referred_by: string | null
-          task_telegram_joined: boolean
-          task_telegram_submitted: boolean
-          task_twitter_followed: boolean
-          telegram_username: string | null
+          event_end_at: string
+          id: number
+          telegram_url: string
+          twitter_url: string
           updated_at: string
-          wallet_address: string
         }
         SetofOptions: {
           from: "*"
-          to: "participants"
+          to: "app_settings"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -224,6 +301,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_wallet: { Args: { _wallet: string }; Returns: boolean }
       referral_exists: { Args: { _code: string }; Returns: boolean }
       submit_telegram_username: {
         Args: { _username: string; _wallet: string }

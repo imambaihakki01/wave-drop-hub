@@ -1,14 +1,18 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Download, Lock, Users, Coins, Award, LogOut, Trash2, Save, Calendar,
-  Crown, Ban, ShieldCheck, Plus, Minus,
+  Download, Lock, Users, Coins, Award, Trash2, Save, Calendar,
+  Ban, ShieldCheck, Plus, Minus, Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { shortAddr } from "@/lib/wallet";
-import { useAuth } from "@/hooks/use-auth";
+import { useWallet } from "@/hooks/use-wallet";
 import { useSettings } from "@/hooks/use-settings";
+
+export const ADMIN_WALLET = "0xfa7447e7ef44c1f36e6bd424edbf0324df92cd1a";
+export const isAdminWallet = (a?: string | null) =>
+  !!a && a.toLowerCase() === ADMIN_WALLET;
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel — Michat Network" }] }),
@@ -31,8 +35,8 @@ type P = {
 };
 
 function Admin() {
-  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { address, connect, loading: walletLoading, hydrated } = useWallet();
+  const isAdmin = isAdminWallet(address);
   const { settings, refresh: refreshSettings } = useSettings();
 
   const [rows, setRows] = useState<P[]>([]);
@@ -43,20 +47,6 @@ function Admin() {
   const [tgUrl, setTgUrl] = useState("");
   const [xUrl, setXUrl] = useState("");
   const [saving, setSaving] = useState(false);
-  const [hasAdmins, setHasAdmins] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate({ to: "/auth" });
-  }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!user || isAdmin) return;
-    supabase
-      .from("user_roles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "admin")
-      .then(({ count }) => setHasAdmins((count ?? 0) > 0));
-  }, [user, isAdmin]);
 
   const loadRows = async () => {
     setLoadingRows(true);
@@ -97,7 +87,6 @@ function Admin() {
   const totalRefs = rows.reduce((a, r) => a + r.referral_count, 0);
   const banned = rows.filter((r) => r.is_banned).length;
 
-  // Daily growth for chart (last 14 days)
   const chart = useMemo(() => {
     const days = 14;
     const buckets: { day: string; count: number }[] = [];
@@ -118,22 +107,18 @@ function Admin() {
 
   const maxBar = Math.max(1, ...chart.map((b) => b.count));
 
-  const claimAdmin = async () => {
-    const { data, error } = await supabase.rpc("claim_first_admin");
-    if (error) return toast.error(error.message);
-    if (data) { toast.success("You are now the Michat Network admin"); window.location.reload(); }
-    else toast.error("An admin already exists. Contact them for access.");
-  };
-
   const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!address) return;
     setSaving(true);
     try {
       const iso = new Date(eventDate).toISOString();
-      const { error } = await supabase
-        .from("app_settings")
-        .update({ event_end_at: iso, telegram_url: tgUrl, twitter_url: xUrl })
-        .eq("id", 1);
+      const { error } = await supabase.rpc("admin_update_settings", {
+        _caller: address,
+        _event_end_at: iso,
+        _telegram_url: tgUrl,
+        _twitter_url: xUrl,
+      });
       if (error) throw error;
       toast.success("Settings saved");
       await refreshSettings();
@@ -145,22 +130,35 @@ function Admin() {
   };
 
   const deleteParticipant = async (p: P) => {
+    if (!address) return;
     if (!confirm(`Delete ${shortAddr(p.wallet_address)}? This cannot be undone.`)) return;
-    const { error } = await supabase.from("participants").delete().eq("id", p.id);
+    const { error } = await supabase.rpc("admin_delete_participant", {
+      _caller: address,
+      _participant_id: p.id,
+    });
     if (error) return toast.error(error.message);
     setRows((r) => r.filter((x) => x.id !== p.id));
     toast.success("Participant removed");
   };
 
   const toggleBan = async (p: P) => {
-    const { data, error } = await supabase.rpc("admin_toggle_ban", { _participant_id: p.id });
+    if (!address) return;
+    const { data, error } = await supabase.rpc("admin_toggle_ban", {
+      _caller: address,
+      _participant_id: p.id,
+    });
     if (error) return toast.error(error.message);
     setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
     toast.success(p.is_banned ? "Wallet unbanned" : "Wallet banned");
   };
 
   const adjustPoints = async (p: P, delta: number) => {
-    const { data, error } = await supabase.rpc("admin_adjust_points", { _participant_id: p.id, _delta: delta });
+    if (!address) return;
+    const { data, error } = await supabase.rpc("admin_adjust_points", {
+      _caller: address,
+      _participant_id: p.id,
+      _delta: delta,
+    });
     if (error) return toast.error(error.message);
     setRows((r) => r.map((x) => (x.id === p.id ? (data as P) : x)));
     toast.success(`${delta > 0 ? "+" : ""}${delta} points`);
@@ -190,29 +188,41 @@ function Admin() {
     toast.success(`Exported ${filtered.length} wallets`);
   };
 
-  if (authLoading) {
+  if (!hydrated) {
     return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">Checking access…</div>;
   }
-  if (!user) return null;
+
+  if (!address) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20">
+        <div className="glass-card rounded-2xl p-8 text-center">
+          <Wallet className="w-10 h-10 mx-auto text-primary mb-3" />
+          <h1 className="text-2xl font-bold text-gradient">Admin Access</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Connect the admin wallet to manage Michat Network.
+          </p>
+          <button onClick={connect} disabled={walletLoading} className="btn-neon mt-5 w-full">
+            {walletLoading ? "Connecting…" : "Connect Wallet"}
+          </button>
+          <Link to="/" className="block text-xs text-muted-foreground mt-3">← Back home</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (
       <div className="max-w-md mx-auto px-4 py-20">
         <div className="glass-card rounded-2xl p-8 text-center">
-          <Lock className="w-10 h-10 mx-auto text-primary mb-3" />
+          <Lock className="w-10 h-10 mx-auto text-destructive mb-3" />
           <h1 className="text-2xl font-bold text-gradient">Not authorized</h1>
-          <p className="text-sm text-muted-foreground mt-2">Your account ({user.email}) doesn't have admin role.</p>
-          {hasAdmins === false && (
-            <div className="mt-5 p-4 rounded-xl border border-secondary/40 bg-secondary/5">
-              <Crown className="w-6 h-6 mx-auto text-secondary mb-2" />
-              <p className="text-sm">No admin exists yet. Claim it to become the first Michat Network administrator.</p>
-              <button onClick={claimAdmin} className="btn-neon mt-3 w-full">Claim Admin Access</button>
-            </div>
-          )}
-          <button onClick={signOut} className="btn-outline-neon mt-4 w-full">
-            <LogOut className="w-4 h-4 inline mr-2" /> Sign out
-          </button>
-          <Link to="/" className="block text-xs text-muted-foreground mt-3">← Back home</Link>
+          <p className="text-sm text-muted-foreground mt-2">
+            Wallet <span className="font-mono">{shortAddr(address)}</span> is not the admin wallet.
+          </p>
+          <p className="text-xs text-muted-foreground mt-3">
+            Only the official admin wallet can access this panel.
+          </p>
+          <Link to="/" className="block text-xs text-muted-foreground mt-4">← Back home</Link>
         </div>
       </div>
     );
@@ -224,15 +234,12 @@ function Admin() {
         <div>
           <h1 className="text-3xl md:text-5xl font-bold text-gradient">Admin Panel</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Signed in as <span className="font-mono text-foreground">{user.email}</span>
+            Admin wallet <span className="font-mono text-foreground">{shortAddr(address)}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} className="btn-neon inline-flex items-center gap-2">
             <Download className="w-4 h-4" /> Export CSV
-          </button>
-          <button onClick={signOut} className="btn-outline-neon inline-flex items-center gap-2">
-            <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
       </header>
@@ -240,10 +247,10 @@ function Admin() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { i: Users, l: "Participants", v: rows.length, c: "primary" },
-          { i: Coins, l: "Total Points", v: totalPoints.toLocaleString(), c: "secondary" },
-          { i: Award, l: "Total Referrals", v: totalRefs, c: "primary" },
-          { i: Ban, l: "Banned", v: banned, c: "destructive" },
+          { i: Users, l: "Participants", v: rows.length },
+          { i: Coins, l: "Total Points", v: totalPoints.toLocaleString() },
+          { i: Award, l: "Total Referrals", v: totalRefs },
+          { i: Ban, l: "Banned", v: banned },
         ].map((s) => (
           <div key={s.l} className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
@@ -254,7 +261,7 @@ function Admin() {
         ))}
       </div>
 
-      {/* Chart: signups last 14 days */}
+      {/* Chart */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Signups · Last 14 days</h2>
@@ -406,16 +413,13 @@ function Admin() {
         .input {
           padding: 0.65rem 0.875rem;
           border-radius: 0.625rem;
-          background: var(--input);
-          border: 1px solid var(--border);
-          color: var(--foreground);
-          color-scheme: dark;
+          background: hsl(var(--input) / 1);
+          border: 1px solid hsl(var(--border));
+          width: 100%;
+          font-size: 0.875rem;
+          color: hsl(var(--foreground));
         }
-        .input:focus {
-          outline: none;
-          border-color: var(--primary);
-          box-shadow: var(--shadow-neon-purple);
-        }
+        .input:focus { outline: none; border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2); }
       `}</style>
     </div>
   );
@@ -424,8 +428,8 @@ function Admin() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-1">{label}</span>
-      {children}
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+      <div className="mt-1.5">{children}</div>
     </label>
   );
 }
