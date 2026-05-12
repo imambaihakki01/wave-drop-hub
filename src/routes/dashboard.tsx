@@ -14,8 +14,8 @@ import { ShareButtons } from "@/components/ShareButtons";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Michat Network" },
-      { name: "description", content: "Your Michat Network control center: tasks, daily check-in, referrals and points." },
+      { title: "Dashboard — Orbexa Network" },
+      { name: "description", content: "Your Orbexa Network control center: tasks, daily check-in, referrals and points." },
     ],
   }),
   component: Dashboard,
@@ -38,7 +38,7 @@ function Dashboard() {
         <div className="glass-card rounded-2xl p-10">
           <Wallet className="w-12 h-12 mx-auto text-primary mb-4" />
           <h1 className="text-3xl font-bold text-gradient">Connect to continue</h1>
-          <p className="text-muted-foreground mt-2">Sign in with MetaMask to access your Michat Network dashboard.</p>
+          <p className="text-muted-foreground mt-2">Sign in with MetaMask to access your Orbexa Network dashboard.</p>
           <button onClick={connect} disabled={loading} className="btn-neon mt-6">
             {loading ? "Connecting…" : "Connect MetaMask"}
           </button>
@@ -48,7 +48,7 @@ function Dashboard() {
   }
 
   const refLink = typeof window !== "undefined" ? `${window.location.origin}/?ref=${participant.referral_code}` : "";
-  const shareText = `🌊 I'm riding the Michat Network airdrop wave! Join via my link and we both earn points.`;
+  const shareText = `🌊 I'm riding the Orbexa Network airdrop wave! Join via my link and we both earn points.`;
 
   const tasksDone =
     [participant.task_telegram_joined, participant.task_twitter_followed, participant.task_telegram_submitted].filter(Boolean).length;
@@ -136,14 +136,14 @@ function Dashboard() {
       {participant.is_banned && (
         <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-4 flex items-center gap-3 animate-fade-in">
           <AlertOctagon className="w-5 h-5 text-destructive" />
-          <div className="text-sm">This wallet has been suspended. Contact the Michat Network team for support.</div>
+          <div className="text-sm">This wallet has been suspended. Contact the Orbexa Network team for support.</div>
         </div>
       )}
 
       <header className="animate-fade-in flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-5xl font-bold text-gradient">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Your Michat Network journey at a glance.</p>
+          <p className="text-muted-foreground mt-2">Your Orbexa Network journey at a glance.</p>
         </div>
         <div
           className="px-4 py-2 rounded-full glass-card text-xs uppercase tracking-widest font-bold flex items-center gap-2"
@@ -214,7 +214,7 @@ function Dashboard() {
             <TaskRow
               icon={<Send className="w-5 h-5" />}
               title="Join our Telegram"
-              desc="Hop into the Michat Network community channel."
+              desc="Hop into the Orbexa Network community channel."
               done={participant.task_telegram_joined}
               busy={busy === "task_telegram_joined"}
               action={
@@ -235,7 +235,7 @@ function Dashboard() {
             <TaskRow
               icon={<Twitter className="w-5 h-5" />}
               title="Follow on X (Twitter)"
-              desc="Follow @michat for live announcements."
+              desc="Follow @orbexa for live announcements."
               done={participant.task_twitter_followed}
               busy={busy === "task_twitter_followed"}
               action={

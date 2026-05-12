@@ -4,10 +4,10 @@ import { Coins, Lock, Users, Rocket, Building2, Gift } from "lucide-react";
 export const Route = createFileRoute("/tokenomics")({
   head: () => ({
     meta: [
-      { title: "Tokenomics — Michat Network" },
-      { name: "description", content: "Explore the MICHAT token supply allocation, vesting schedule, and utility within the Michat Network ecosystem." },
-      { property: "og:title", content: "MICHAT Tokenomics — Michat Network" },
-      { property: "og:description", content: "Total supply, allocation breakdown, and utility of the MICHAT token." },
+      { title: "Tokenomics — Orbexa Network" },
+      { name: "description", content: "Explore the OBX token supply allocation, vesting schedule, and utility within the Orbexa Network ecosystem." },
+      { property: "og:title", content: "OBX Tokenomics — Orbexa Network" },
+      { property: "og:description", content: "Total supply, allocation breakdown, and utility of the OBX token." },
     ],
   }),
   component: Tokenomics,
@@ -38,7 +38,7 @@ function Tokenomics() {
         <div className="inline-block px-4 py-1.5 rounded-full glass-card text-xs uppercase tracking-widest text-secondary">Token</div>
         <h1 className="mt-4 text-4xl md:text-6xl font-bold text-gradient">Tokenomics</h1>
         <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-          $MICHAT is the native token powering the Michat Network ecosystem. Designed for community ownership.
+          $OBX is the native token powering the Orbexa Network ecosystem. Designed for community ownership.
         </p>
       </header>
 
@@ -47,7 +47,7 @@ function Tokenomics() {
           { l: "Total Supply", v: "1,000,000,000" },
           { l: "Initial Circulating", v: "60%" },
           { l: "Network", v: "Multichain" },
-          { l: "Token Symbol", v: "$MICHAT" },
+          { l: "Token Symbol", v: "$OBX" },
         ].map((s, i) => (
           <div key={s.l} className="glass-card rounded-2xl p-5 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.l}</div>
@@ -104,8 +104,8 @@ function Tokenomics() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { t: "Governance", d: "Vote on protocol upgrades and treasury allocation." },
-            { t: "Staking", d: "Lock $MICHAT to earn yield and boost referral multipliers." },
-            { t: "Access", d: "Unlock premium Michat Network seasons and exclusive partner drops." },
+            { t: "Staking", d: "Lock $OBX to earn yield and boost referral multipliers." },
+            { t: "Access", d: "Unlock premium Orbexa Network seasons and exclusive partner drops." },
           ].map((u) => (
             <div key={u.t} className="rounded-xl border border-border p-4 bg-card/40">
               <div className="font-semibold">{u.t}</div>

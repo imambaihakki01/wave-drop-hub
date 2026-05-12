@@ -51,14 +51,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Michat Network — The Future of Community Airdrop" },
-      { name: "description", content: "Join Michat Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
-      { property: "og:title", content: "Michat Network — The Future of Community Airdrop" },
-      { property: "og:description", content: "Join Michat Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
+      { title: "Orbexa Network — The Future of Community Airdrop" },
+      { name: "description", content: "Join Orbexa Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
+      { property: "og:title", content: "Orbexa Network — The Future of Community Airdrop" },
+      { property: "og:description", content: "Join Orbexa Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Michat Network — The Future of Community Airdrop" },
-      { name: "twitter:description", content: "Join Michat Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
+      { name: "twitter:title", content: "Orbexa Network — The Future of Community Airdrop" },
+      { name: "twitter:description", content: "Join Orbexa Network: a modern crypto airdrop platform with referrals, leaderboard and on-chain rewards." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/97b70133-120f-4d88-9736-561f49e36d44" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/97b70133-120f-4d88-9736-561f49e36d44" },
     ],
@@ -103,7 +103,7 @@ function RootComponent() {
         <footer className="border-t border-border py-8 mt-10">
           <div className="max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-3 gap-6 text-sm">
             <div>
-              <div className="font-bold text-gradient text-lg">Michat Network</div>
+              <div className="font-bold text-gradient text-lg">Orbexa Network</div>
               <p className="text-xs text-muted-foreground mt-2 max-w-xs">
                 The future of community airdrops. Surf the chain, earn rewards.
               </p>
@@ -122,7 +122,7 @@ function RootComponent() {
             </div>
           </div>
           <div className="text-center text-xs text-muted-foreground mt-8">
-            © {new Date().getFullYear()} Michat Network. Surf the chain.
+            © {new Date().getFullYear()} Orbexa Network. Surf the chain.
           </div>
         </footer>
       </div>

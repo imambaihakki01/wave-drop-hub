@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BrowserProvider } from "ethers";
 import { toast } from "sonner";
 
-const KEY = "michat_admin_sig";
+const KEY = "orbexa_admin_sig";
 const TTL_MIN = 30;
 
 export type AdminSession = { message: string; signature: string; validUntil: number };
@@ -40,7 +40,7 @@ export function useAdminSession() {
       const signer = await provider.getSigner();
       const validUntil = Date.now() + TTL_MIN * 60_000;
       const message = [
-        "Michat Admin Auth",
+        "Orbexa Admin Auth",
         `Nonce: ${crypto.randomUUID()}`,
         `Valid until: ${new Date(validUntil).toISOString()}`,
       ].join("\n");
