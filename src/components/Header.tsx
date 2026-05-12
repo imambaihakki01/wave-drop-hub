@@ -1,8 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
-import { Wallet, LogOut, Waves, Menu, X } from "lucide-react";
+import { Wallet, LogOut, Menu, X } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { shortAddr } from "@/lib/wallet";
+import { Logo } from "./Logo";
 
 const nav = [
   { to: "/", label: "Home" },
