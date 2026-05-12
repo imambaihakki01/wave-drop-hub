@@ -56,10 +56,10 @@ function Dashboard() {
 
   // Tier system
   const tier =
-    participant.points >= 200 ? { name: "Tsunami", color: "oklch(0.7 0.28 340)" }
-    : participant.points >= 100 ? { name: "Pulsar", color: "oklch(0.65 0.28 295)" }
-    : participant.points >= 50 ? { name: "Comet", color: "oklch(0.7 0.22 235)" }
-    : { name: "Drifter", color: "oklch(0.7 0.04 280)" };
+    participant.points >= 200 ? { name: "Supernova", color: "oklch(0.72 0.32 330)" }
+    : participant.points >= 100 ? { name: "Pulsar", color: "oklch(0.85 0.2 200)" }
+    : participant.points >= 50 ? { name: "Comet", color: "oklch(0.92 0.25 130)" }
+    : { name: "Drifter", color: "oklch(0.7 0.04 220)" };
 
   // Daily check-in availability
   const lastCheckIn = participant.last_check_in ? new Date(participant.last_check_in).getTime() : 0;
