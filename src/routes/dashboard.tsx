@@ -115,7 +115,7 @@ function Dashboard() {
     try {
       const { error } = await supabase.rpc("claim_daily", { _wallet: participant.wallet_address });
       if (error) throw error;
-      toast.success("Daily claim — +5 points! 🌊");
+      toast.success("Daily claim — +5 points! 🛰️");
       await refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed");
