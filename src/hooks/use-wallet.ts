@@ -18,7 +18,7 @@ export type Participant = {
   last_check_in: string | null;
 };
 
-const REF_KEY = "michat_ref";
+const REF_KEY = "orbexa_ref";
 
 export async function captureReferral() {
   if (typeof window === "undefined") return;
@@ -105,7 +105,7 @@ export function useWallet() {
           localStorage.removeItem(REF_KEY);
         }
         setParticipant(p);
-        toast.success("Wallet connected — welcome to Michat Network!");
+        toast.success("Wallet connected — welcome to Orbexa Network!");
       } else {
         toast.success("Welcome back!");
       }

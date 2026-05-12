@@ -3,7 +3,7 @@ import { verifyMessage } from "ethers";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const ADMIN_WALLET = "0xfa7447e7ef44c1f36e6bd424edbf0324df92cd1a";
-const MSG_PREFIX = "Michat Admin Auth";
+const MSG_PREFIX = "Orbexa Admin Auth";
 
 type AuthInput = { message: string; signature: string };
 

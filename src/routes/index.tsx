@@ -26,7 +26,7 @@ function Home() {
           </div>
 
           <h1 className="mt-6 text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-fade-in">
-            <span className="text-gradient">Michat Network</span>
+            <span className="text-gradient">Orbexa Network</span>
           </h1>
           <p className="mt-3 text-base md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.1s" }}>
             The future of community airdrops. Connect, complete, refer — ride the wave to on-chain rewards.
@@ -35,7 +35,7 @@ function Home() {
           <div className="mt-10 animate-fade-in" style={{ animationDelay: "0.2s" }}>
             <Countdown />
             <div className="text-xs uppercase tracking-widest text-muted-foreground mt-3">
-              Until Michat Network snapshot
+              Until Orbexa Network snapshot
             </div>
           </div>
 
@@ -76,7 +76,7 @@ function Home() {
             {
               icon: Trophy,
               title: "Climb the Board",
-              desc: "Top referrers receive priority allocation when Michat Network goes live on-chain.",
+              desc: "Top referrers receive priority allocation when Orbexa Network goes live on-chain.",
               color: "primary",
             },
           ].map((f, i) => (
@@ -112,7 +112,7 @@ function Home() {
         <div className="mt-10 grid sm:grid-cols-3 gap-4">
           {[
             { to: "/how-it-works", icon: BookOpen, title: "How It Works", desc: "4 steps to earn." },
-            { to: "/tokenomics", icon: Coins, title: "Tokenomics", desc: "$MICHAT supply & utility." },
+            { to: "/tokenomics", icon: Coins, title: "Tokenomics", desc: "$OBX supply & utility." },
             { to: "/faq", icon: HelpCircle, title: "FAQ", desc: "Common questions." },
           ].map((c, i) => (
             <Link

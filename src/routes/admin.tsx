@@ -20,7 +20,7 @@ export const isAdminWallet = (a?: string | null) =>
   !!a && a.toLowerCase() === ADMIN_WALLET;
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Panel — Michat Network" }] }),
+  head: () => ({ meta: [{ title: "Admin Panel — Orbexa Network" }] }),
   component: Admin,
 });
 
@@ -200,7 +200,7 @@ function Admin() {
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `michat-participants-${Date.now()}.csv`; a.click();
+    a.href = url; a.download = `orbexa-participants-${Date.now()}.csv`; a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} wallets`);
   };
@@ -216,7 +216,7 @@ function Admin() {
           <Wallet className="w-10 h-10 mx-auto text-primary mb-3" />
           <h1 className="text-2xl font-bold text-gradient">Admin Access</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Connect the admin wallet to manage Michat Network.
+            Connect the admin wallet to manage Orbexa Network.
           </p>
           <button onClick={connect} disabled={walletLoading} className="btn-neon mt-5 w-full">
             {walletLoading ? "Connecting…" : "Connect Wallet"}

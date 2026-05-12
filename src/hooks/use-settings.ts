@@ -9,8 +9,8 @@ export type Settings = {
 
 const DEFAULT: Settings = {
   event_end_at: new Date(Date.now() + 30 * 86400000).toISOString(),
-  telegram_url: "https://t.me/michat",
-  twitter_url: "https://x.com/michat",
+  telegram_url: "https://t.me/orbexa",
+  twitter_url: "https://x.com/orbexa",
 };
 
 export function useSettings() {
