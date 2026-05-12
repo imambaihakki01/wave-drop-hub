@@ -4,6 +4,7 @@ import { Wallet, LogOut, Menu, X } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { shortAddr } from "@/lib/wallet";
 import { Logo } from "./Logo";
+import { FxIntensityControl } from "./FxIntensityControl";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -52,6 +53,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <FxIntensityControl compact />
           {address ? (
             <>
               <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg glass-card font-mono text-xs">

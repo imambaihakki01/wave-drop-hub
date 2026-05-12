@@ -305,3 +305,38 @@
 
   .font-mono { font-family: var(--font-mono); }
 }
+
+/* ===== Neon FX intensity overrides ===== */
+/* Medium: slow down expensive animations a bit */
+.fx-medium .animate-drift { animation-duration: 22s; }
+.fx-medium .animate-spin-slow { animation-duration: 22s; }
+.fx-medium .animate-spin-slower { animation-duration: 44s; }
+.fx-medium .animate-spin-reverse { animation-duration: 28s; }
+.fx-medium .animate-pulse-glow { animation-duration: 5s; }
+.fx-medium .animate-flicker { animation: none; opacity: 1; }
+.fx-medium .neon-border::before { animation-duration: 16s; opacity: 0.5; }
+
+/* Low: disable heavy/looping animations + soften glows for battery & comfort */
+.fx-low .animate-drift,
+.fx-low .animate-spin-slow,
+.fx-low .animate-spin-slower,
+.fx-low .animate-spin-reverse,
+.fx-low .animate-pulse-glow,
+.fx-low .animate-flicker,
+.fx-low .animate-shimmer,
+.fx-low .animate-float,
+.fx-low .animate-orbit-pulse,
+.fx-low .text-gradient,
+.fx-low .animate-gradient-shift {
+  animation: none !important;
+}
+.fx-low .neon-border::before { animation: none; opacity: 0.35; }
+.fx-low .text-neon { text-shadow: 0 0 4px oklch(0.85 0.2 200 / 60%); }
+.fx-low .text-neon-magenta { text-shadow: 0 0 4px oklch(0.72 0.32 330 / 60%); }
+.fx-low .shadow-neon-purple,
+.fx-low .shadow-neon-blue,
+.fx-low .shadow-neon-lime { box-shadow: 0 0 10px oklch(0.85 0.2 200 / 25%); }
+.fx-low .btn-neon { box-shadow: 0 0 12px oklch(0.85 0.2 200 / 35%); }
+.fx-low .btn-neon:hover { box-shadow: 0 0 16px oklch(0.85 0.2 200 / 45%); }
+.fx-low .btn-neon::after { display: none; }
+
