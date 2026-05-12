@@ -254,7 +254,24 @@ function Admin() {
             Admin wallet <span className="font-mono text-foreground">{shortAddr(address)}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {adminAuth.isValid ? (
+            <button
+              onClick={adminAuth.clear}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-secondary/40 text-secondary text-xs hover:bg-secondary/10"
+            >
+              <ShieldCheck className="w-4 h-4" /> Session active · Revoke
+            </button>
+          ) : (
+            <button
+              onClick={adminAuth.sign}
+              disabled={adminAuth.signing}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-primary/40 text-primary text-xs hover:bg-primary/10"
+            >
+              <KeyRound className="w-4 h-4" />
+              {adminAuth.signing ? "Awaiting signature…" : "Sign admin session"}
+            </button>
+          )}
           <button onClick={exportCSV} className="btn-neon inline-flex items-center gap-2">
             <Download className="w-4 h-4" /> Export CSV
           </button>
