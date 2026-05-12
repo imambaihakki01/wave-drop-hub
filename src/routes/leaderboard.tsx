@@ -6,7 +6,7 @@ import { shortAddr } from "@/lib/wallet";
 import { useWallet } from "@/hooks/use-wallet";
 
 export const Route = createFileRoute("/leaderboard")({
-  head: () => ({ meta: [{ title: "Leaderboard — WaveDrop" }] }),
+  head: () => ({ meta: [{ title: "Leaderboard — Michat Network" }] }),
   component: Leaderboard,
 });
 
@@ -46,7 +46,7 @@ function Leaderboard() {
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-10 space-y-8">
       <header className="text-center animate-fade-in">
         <h1 className="text-4xl md:text-6xl font-bold text-gradient">Leaderboard</h1>
-        <p className="text-muted-foreground mt-2">Top referrers riding the WaveDrop wave.</p>
+        <p className="text-muted-foreground mt-2">Top referrers riding the Michat Network wave.</p>
       </header>
 
       {/* Podium */}

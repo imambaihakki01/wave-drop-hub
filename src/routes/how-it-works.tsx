@@ -4,20 +4,20 @@ import { Wallet, ListChecks, Users, Trophy, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How It Works — WaveDrop" },
-      { name: "description", content: "Four simple steps to ride the WaveDrop airdrop wave: connect, complete, refer, and claim." },
-      { property: "og:title", content: "How It Works — WaveDrop" },
-      { property: "og:description", content: "Four simple steps to ride the WaveDrop airdrop wave." },
+      { title: "How It Works — Michat Network" },
+      { name: "description", content: "Four simple steps to ride the Michat Network airdrop wave: connect, complete, refer, and claim." },
+      { property: "og:title", content: "How It Works — Michat Network" },
+      { property: "og:description", content: "Four simple steps to ride the Michat Network airdrop wave." },
     ],
   }),
   component: HowItWorks,
 });
 
 const steps = [
-  { icon: Wallet, title: "Connect Wallet", desc: "Sign in with MetaMask. Your address becomes your unique WaveDrop ID — no email needed." },
+  { icon: Wallet, title: "Connect Wallet", desc: "Sign in with MetaMask. Your address becomes your unique Michat Network ID — no email needed." },
   { icon: ListChecks, title: "Complete Tasks", desc: "Join Telegram, follow on X, submit your handle. Each task = +10 points." },
   { icon: Users, title: "Refer Friends", desc: "Share your unique referral link. Each successful join gives you +20 points." },
-  { icon: Trophy, title: "Claim Rewards", desc: "When the snapshot hits, top wallets receive priority allocation of the WaveDrop token." },
+  { icon: Trophy, title: "Claim Rewards", desc: "When the snapshot hits, top wallets receive priority allocation of the Michat Network token." },
 ];
 
 function HowItWorks() {

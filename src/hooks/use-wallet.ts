@@ -18,7 +18,7 @@ export type Participant = {
   last_check_in: string | null;
 };
 
-const REF_KEY = "wavedrop_ref";
+const REF_KEY = "michat_ref";
 
 export async function captureReferral() {
   if (typeof window === "undefined") return;
@@ -105,7 +105,7 @@ export function useWallet() {
           localStorage.removeItem(REF_KEY);
         }
         setParticipant(p);
-        toast.success("Wallet connected — welcome to WaveDrop!");
+        toast.success("Wallet connected — welcome to Michat Network!");
       } else {
         toast.success("Welcome back!");
       }

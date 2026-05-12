@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Admin Login — WaveDrop" }] }),
+  head: () => ({ meta: [{ title: "Admin Login — Michat Network" }] }),
   component: AuthPage,
 });
 
@@ -56,7 +56,7 @@ function AuthPage() {
           </div>
           <h1 className="text-2xl font-bold text-gradient mt-3">Admin Access</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {mode === "signin" ? "Sign in to manage WaveDrop" : "Create your admin account"}
+            {mode === "signin" ? "Sign in to manage Michat Network" : "Create your admin account"}
           </p>
         </div>
 
@@ -103,7 +103,7 @@ function AuthPage() {
       </form>
 
       <p className="text-[10px] text-muted-foreground text-center mt-4 max-w-xs mx-auto">
-        First account to claim admin via the panel becomes the WaveDrop administrator.
+        First account to claim admin via the panel becomes the Michat Network administrator.
       </p>
     </div>
   );
